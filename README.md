@@ -12,7 +12,8 @@
 | 2022-4-22 | 反射机制                               |
 | 2022-4-23 | JDBC，URLConnection，JNI，java动态代理 |
 | 2022-4-24 | java字节码                             |
-| 2022-4-25 | sun.misc.Unsafe，序列化与反序列化      |
+| 2022-4-25 | sun.misc.Unsafe，序列化与反序列化基础  |
+| 2022-4-26 | RMI                                    |
 
 
 
