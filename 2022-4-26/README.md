@@ -217,4 +217,64 @@ Client:
 
 除了applet，RMI也存在远程加载的场景，也会涉及到codebase。
 
-codebase与CLASSPATH差不多，classpath找的是本地的路径 ，而codebase
+codebase与CLASSPATH差不多，classpath找的是本地的路径 ，而codebase为远程URL地址。
+
+当客户端发送数据到客户端进行反序列化之后，会先去CLASSPATH下找相应的类，如果没有找到，则会去codebase去找，比如`codebase="www.xx.com"`
+
+假如要加载的类为xx.yy.z类，那么会找：`www.xx.com/xx.yy.x.class`，所以说，如果远程codebase被控制，就可以加载恶意类了。
+
+条件：
+
+1.  安装并配置SecurityManager
+
+2.  版本低于7u21,6u54，或者设置属性：java.rmi.server.useCodebaseOnly=false
+
+    ```java
+    javac *.java
+    java -Djava.rmi.server.hostname=192.168.135.142 -
+    Djava.rmi.server.useCodebaseOnly=false -Djava.security.policy=client.policy
+    RemoteRMIServer
+    ```
+
+    https://docs.oracle.com/javase/7/docs/technotes/guides/rmi/enhancements-7.html
+
+SecurityManager：
+
+加参数打开：`-Djava.security.manager`
+
+policy为策略配置文件，指定哪些类有那些权限
+
+
+
+# 最后
+
+最后讲一个东西：`Annotationsclass`，后面序列化反序列化会用到
+
+codebase传递是通过 `[Ljava.rmi.server.ObjID;` 的 `classAnnotations` 传递的，这里wireshark抓包使用`SerializationDumper`查看反序列化即可。
+
+序列化反序列化的时候，会用到`objectOutputStream`，其内部有个方法：`annotateClass`，ObjectOutputStream 的子类有需要向序列化后的数据里放任何内容，都可以重写 这个方法，写入你自己想要写入的数据。然后反序列化时，就可以读取到这个信息并使用。
+
+![image-20220427084310507](README/image-20220427084310507.png)
+
+比如说：`MarshalOutputStream`类，该类继承了`ObjectOutputStream`，并实现了`annotateClass`方法：
+
+![image-20220427084457055](README/image-20220427084457055.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
