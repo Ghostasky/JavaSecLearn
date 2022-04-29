@@ -8,15 +8,15 @@
 
 | 时间      | 内容                                   |
 | --------- | -------------------------------------- |
-| 2022-4-21 | 类加载器，双亲委派模型                 |
-| 2022-4-22 | 反射机制                               |
-| 2022-4-23 | JDBC，URLConnection，JNI，java动态代理 |
-| 2022-4-24 | java字节码                             |
-| 2022-4-25 | sun.misc.Unsafe，序列化与反序列化基础  |
-| 2022-4-26 | RMI                                    |
-| 2022-4-27 | P牛反序列化阅读，URLDNS  |
-| 2022-4-28| CC1，未完... |
-| 2022-4-29 | HashMap |
+| 2022-4-21 | [类加载器，双亲委派模型](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-21) |
+| 2022-4-22 | [反射机制](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-22) |
+| 2022-4-23 | [JDBC，URLConnection，JNI，java动态代理](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-23) |
+| 2022-4-24 | [java字节码](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-24) |
+| 2022-4-25 | [sun.misc.Unsafe，序列化与反序列化基础](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-25) |
+| 2022-4-26 | [RMI](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-26) |
+| 2022-4-27 | [P牛反序列化阅读，URLDNS](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-27) |
+| 2022-4-28| [CC1，未完...见后续LazyMap](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-28) |
+| 2022-4-29 | [cc1-LazyMap](https://github.com/Ghostasky/JavaSecLearn/tree/main/2022-4-29) |
 
 
 
